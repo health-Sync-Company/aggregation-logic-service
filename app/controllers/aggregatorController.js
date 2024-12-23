@@ -1,5 +1,5 @@
-const Appointment = require('../models/Appointment'); // Assuming Appointment model is available
-const Patient = require('../models/Patient'); // Assuming Patient model is available
+const Appointment = require('../models/Appointment');
+const Patient = require('../models/Patient');
 const mongoose = require('mongoose');
 
 // Get appointments per doctor

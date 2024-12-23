@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregation-logic-service
+  labels:
+    app: aggregation-logic-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aggregation-logic-service
+  template:
+    metadata:
+      labels:
+        app: aggregation-logic-service
+    spec:
+      containers:
+        - name: aggregation-logic-service
+          image: gcr.io/infra-odyssey-445416-h1/aggregation-logic-service:prod
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /api/aggregation-logic-service/health
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /api/aggregation-logic-service/health
+            initialDelaySeconds: 40
+            periodSeconds: 10

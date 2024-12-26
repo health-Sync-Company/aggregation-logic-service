@@ -18,4 +18,6 @@ app.use(`${process.env.BASE_PATH}`, healthRoutes);
 
 // Server start
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = { app, server };

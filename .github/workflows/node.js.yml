@@ -42,7 +42,7 @@ jobs:
       - name: Run Tests
         run: |
           echo "Running Tests..."
-          npm test || echo "No tests specified, skipping..."
+          npm test
 
       # Step 5: Build Docker Image
       - name: Build Docker Image

@@ -5,8 +5,9 @@ metadata:
 spec:
   selector:
     app: aggregation-logic-service
-  type: NodePort
+    version: blue  # Initially, traffic goes to Blue
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
+  type: NodePort

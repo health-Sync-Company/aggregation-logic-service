@@ -14,8 +14,8 @@ env:
   K8S_NAMESPACE: health-sync
   APPLICATION_NAME: aggregation-logic-service
   DOCKER_IMAGE_TAG: prod
-  K8S_DEPLOYMENT_FILE: deployment.yaml
-  K8S_SERVICE_FILE: service.yaml
+  DEPLOYMENT_FILE: deployment.yaml
+  SERVICE_FILE: service.yaml
 
 jobs:
   ci-cd-pipeline:
@@ -76,16 +76,40 @@ jobs:
         run: |-
           gcloud components install gke-gcloud-auth-plugin
 
-      # Step 11: Deploy to GKE
-      - name: Deploy to GKE
+      # Step 11: Apply Kubernetes Deployment and Service
+      - name: Apply Kubernetes Manifests
         run: |
-          kubectl apply -f ${{ env.K8S_SERVICE_FILE }} -n "${{ env.K8S_NAMESPACE }}"
-          kubectl apply -f ${{ env.K8S_DEPLOYMENT_FILE }} -n "${{ env.K8S_NAMESPACE }}"
-          kubectl rollout restart deployment "${{ env.APPLICATION_NAME }}" -n "${{ env.K8S_NAMESPACE }}"
-          kubectl get services -o wide -n "${{ env.K8S_NAMESPACE }}"
+          echo "Applying Kubernetes manifests..."
+          kubectl apply -f ${{ env.DEPLOYMENT_FILE }} -n "${{ env.K8S_NAMESPACE }}"
+          kubectl apply -f ${{ env.SERVICE_FILE }} -n "${{ env.K8S_NAMESPACE }}"
 
-      # Step 12: Deployment Health Check
+      # Step 12: Verify Blue Deployment
+      - name: Verify Blue Deployment
+        run: |
+          echo "Verifying Blue Deployment..."
+          kubectl rollout status deployment/aggregation-logic-service-blue -n "${{ env.K8S_NAMESPACE }}" --timeout=180s || kubectl describe deployment aggregation-logic-service-blue -n "${{ env.K8S_NAMESPACE }}"
+
+      # Step 13: Verify Green Deployment
+      - name: Verify Green Deployment
+        run: |
+          echo "Verifying Green Deployment..."
+          kubectl rollout status deployment/aggregation-logic-service-green -n "${{ env.K8S_NAMESPACE }}" --timeout=180s || kubectl describe deployment aggregation-logic-service-green -n "${{ env.K8S_NAMESPACE }}"
+
+      # Step 14: Switch Traffic to Green
+      - name: Switch Traffic to Green
+        run: |
+          echo "Switching traffic to Green environment..."
+          kubectl patch service aggregation-logic-service -p '{"spec":{"selector":{"app":"aggregation-logic-service","version":"green"}}}' -n "${{ env.K8S_NAMESPACE }}"
+
+      # Step 15: Optional Cleanup Blue Deployment
+      - name: Cleanup Blue Deployment
+        run: |
+          echo "Cleaning up Blue environment..."
+          kubectl delete deployment/notification-service-blue -n "${{ env.K8S_NAMESPACE }}"
+
+      # Step 16: Deployment Health Check
 #      - name: Deployment Integration Tests
 #        run: |
 #          echo "Running Service Health Check Test..."
 #          curl --fail "http://localhost:8080/api/${{ env.APPLICATION_NAME }}/health" || exit 1
+#          echo "Health Check Passed."

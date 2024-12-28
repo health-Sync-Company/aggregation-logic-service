@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: aggregation-logic-service
-          image: gcr.io/YOUR_PROJECT_ID/aggregation-logic-service:blue
+          image: gcr.io/infra-odyssey-445416-h1/aggregation-logic-service:prod
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -57,7 +57,7 @@ spec:
     spec:
       containers:
         - name: aggregation-logic-service
-          image: gcr.io/YOUR_PROJECT_ID/aggregation-logic-service:green
+          image: gcr.io/infra-odyssey-445416-h1/aggregation-logic-service:prod
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

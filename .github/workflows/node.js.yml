@@ -105,7 +105,7 @@ jobs:
       - name: Cleanup Blue Deployment
         run: |
           echo "Cleaning up Blue environment..."
-          kubectl delete deployment/notification-service-blue -n "${{ env.K8S_NAMESPACE }}"
+          kubectl delete deployment/aggregation-logic-service-blue -n "${{ env.K8S_NAMESPACE }}"
 
       # Step 16: Deployment Health Check
 #      - name: Deployment Integration Tests

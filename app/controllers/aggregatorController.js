@@ -16,6 +16,15 @@ const connectDB = async () => {
     }
 };
 
+const redshiftClient = new Client(
+    {     host: process.env.REDSHIFT_HOST,     
+          port: process.env.REDSHIFT_PORT,     
+          user: process.env.REDSHIFT_USER,     
+          password: process.env.REDSHIFT_PASSWORD,     
+          database: process.env.REDSHIFT_DATABASE, 
+        }
+    );
+
 // Get appointments per doctor
 const getAppointmentsPerDoctor = async () => {
     return await Appointment.aggregate([

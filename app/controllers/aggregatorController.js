@@ -2,6 +2,20 @@ const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const mongoose = require('mongoose');
 
+// MongoDB connection setup
+const connectDB = async () => {
+    try {
+        await mongoose.connect('mongodb://localhost:27017/health-sync', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log("Connected to MongoDB");
+    } catch (error) {
+        console.error("Error connecting to MongoDB:", error.message);
+        throw error;
+    }
+};
+
 // Get appointments per doctor
 const getAppointmentsPerDoctor = async () => {
     return await Appointment.aggregate([
@@ -13,7 +27,7 @@ const getAppointmentsPerDoctor = async () => {
         },
         {
             $lookup: {
-                from: "doctors", // Replace with the actual collection name for doctors
+                from: "doctors", 
                 localField: "_id",
                 foreignField: "_id",
                 as: "doctorInfo",
@@ -67,7 +81,7 @@ const getCommonConditionsBySpecialty = async () => {
         },
         {
             $group: {
-                _id: "$specialty", // Replace with the actual field representing specialty
+                _id: "$specialty", 
                 commonConditions: { $addToSet: "$medicalHistory" },
             },
         },
@@ -80,14 +94,25 @@ const getCommonConditionsBySpecialty = async () => {
     ]);
 };
 
+// Fetch all patients
+const getAllPatients = async () => {
+    return await Patient.find({});
+};
+
 // Main aggregation function
 const aggregateData = async () => {
     try {
+        await connectDB(); // Connect to MongoDB
+
+        const allPatients = await getAllPatients(); // Fetch all patients
+        console.log("All Patients:", allPatients);
+
         const appointmentsPerDoctor = await getAppointmentsPerDoctor();
         const appointmentFrequency = await getAppointmentFrequency();
         const commonConditionsBySpecialty = await getCommonConditionsBySpecialty();
 
         return {
+            allPatients,
             appointmentsPerDoctor,
             appointmentFrequency,
             commonConditionsBySpecialty,

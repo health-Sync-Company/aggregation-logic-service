@@ -1,7 +1,7 @@
 const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const mongoose = require('mongoose');
-const { Client } = require('pg');
+const Client = require('pg');
 
 // MongoDB connection setup
 const connectDB = async () => {

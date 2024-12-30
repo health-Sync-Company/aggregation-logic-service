@@ -108,8 +108,8 @@ jobs:
           kubectl delete deployment/aggregation-logic-service-blue -n "${{ env.K8S_NAMESPACE }}"
 
       # Step 16: Deployment Health Check
-#      - name: Deployment Integration Tests
-#        run: |
-#          echo "Running Service Health Check Test..."
-#          curl --fail "http://localhost:8080/api/${{ env.APPLICATION_NAME }}/health" || exit 1
-#          echo "Health Check Passed."
+      - name: Deployment Integration Tests
+        run: |
+          echo "Running Service Health Check Test..."
+          curl --fail "http://34.111.113.196/api/aggregation-logic-service/health" || exit 1
+          echo "Health Check Passed."

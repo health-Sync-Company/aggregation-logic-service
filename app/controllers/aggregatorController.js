@@ -104,9 +104,45 @@ const getCommonConditionsBySpecialty = async () => {
     ]);
 };
 
-// Fetch all patients
-const getAllPatients = async () => {
-    return await Patient.find({});
+// Insert data into Redshift
+const insertAppointmentsPerDoctor = async (appointments) => {
+    const query = `INSERT INTO health_sync.public.AppointmentsPerDoctor (DoctorId, DoctorName, Specialization, AppointmentCount)
+                   VALUES ($1, $2, $3, $4)
+                   ON CONFLICT (DoctorId) DO UPDATE SET
+                   DoctorName = EXCLUDED.DoctorName,
+                   Specialization = EXCLUDED.Specialization,
+                   AppointmentCount = EXCLUDED.AppointmentCount;`;
+
+    for (const appointment of appointments) {
+        const { doctorId, doctorName, specialization, totalAppointments } = appointment;
+        await redshiftClient.query(query, [doctorId, doctorName, specialization || null, totalAppointments]);
+    }
+};
+
+const insertAppointmentFrequency = async (frequencies) => {
+    const query = `INSERT INTO health_sync.public.AppointmentFrequency (AppointmentDate, AppointmentCount)
+                   VALUES ($1, $2)
+                   ON CONFLICT (AppointmentDate) DO UPDATE SET
+                   AppointmentCount = EXCLUDED.AppointmentCount;`;
+
+    for (const frequency of frequencies) {
+        const { year, month, totalAppointments } = frequency;
+        const date = new Date(year, month - 1, 1); // Create a date object for the first day of the month
+        await redshiftClient.query(query, [date.toISOString().split('T')[0], totalAppointments]);
+    }
+};
+
+const insertCommonConditionsBySpecialty = async (conditions) => {
+    const query = `INSERT INTO health_sync.public.CommonConditionsBySpecialty (Specialty, CommonCondition)
+                   VALUES ($1, $2)
+                   ON CONFLICT (Specialty, CommonCondition) DO NOTHING;`;
+
+    for (const condition of conditions) {
+        const { specialty, commonConditions } = condition;
+        for (const commonCondition of commonConditions) {
+            await redshiftClient.query(query, [specialty, commonCondition]);
+        }
+    }
 };
 
 // Main aggregation function
@@ -114,12 +150,15 @@ const aggregateData = async () => {
     try {
         await connectDB(); // Connect to MongoDB
 
-        const allPatients = await getAllPatients(); // Fetch all patients
-        console.log("All Patients:", allPatients);
-
+        // Fetch data from MongoDB
         const appointmentsPerDoctor = await getAppointmentsPerDoctor();
         const appointmentFrequency = await getAppointmentFrequency();
         const commonConditionsBySpecialty = await getCommonConditionsBySpecialty();
+
+        // Insert data into Redshift
+        await insertAppointmentsPerDoctor(appointmentsPerDoctor);
+        await insertAppointmentFrequency(appointmentFrequency);
+        await insertCommonConditionsBySpecialty(commonConditionsBySpecialty);
 
         return {
             allPatients,
